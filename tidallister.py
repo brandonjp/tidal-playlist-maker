@@ -100,6 +100,9 @@ if artists:
     artistsList = artists.split(",")
     playlist += " " + " ".join(artists.split(","))
     newPlaylistDescription += "--artists '" + artists + "' "
+    if similars:
+        playlist += " (& Similar Artists)"
+        newPlaylistDescription += "--similars='" + str(similars) + "' "
 
 if albums:
     albumsList = albums.split(",")
@@ -177,42 +180,68 @@ def get_artist_similar(artistID):
     pass
 
 
+artistsIDs = []
 # Search for the artists
 if artists:
     for a in artistsList:
         print(" - - - \n")
-        print("* Searching for ARTIST: ", a)
+        print("* Searching for ARTIST:", a)
         search = session.search("artist", a, limit=1)
         if search.artists:
             for result in search.artists:
                 artistID = result.id
-                print("** Found ARTIST: ", result.name, artistID, "\n")
-                topTracks = session.get_artist_top_tracks(artistID)
-                # collect track titles so we can avoid duplicates
-                trackTitles = []
-                for i, track in enumerate(topTracks):
-                    trackID = str(track.id)
-                    trackStringID = make_string_id(track.name) + make_string_id(
-                        track.artist.name
-                    )
-                    trackInfoForPrint = (
-                        trackID
-                        + " - "
-                        + track.name
-                        + " by "
-                        + track.artist.name
-                        + " * "
-                        + trackStringID
-                    )
-                    if int(qty) == len(trackTitles):
-                        break
-                    else:
-                        if trackStringID not in trackTitles:
-                            tracksToAdd.append(trackID)
-                            trackTitles.append(trackStringID)
-                            print("  +Added!", trackInfoForPrint)
+                print("** Found ARTIST:", result.name, artistID, "\n")
+                # add all artist IDs to list, then loop through to get tracks
+                artistsIDs.append(artistID)
+                if getSimilars:
+                    similarArtists = session.get_artist_similar(artistID)
+                    for i, sim in enumerate(similarArtists):
+                        if (i + 1) > int(similars):
+                            break
                         else:
-                            print("  -Duplicate:", trackInfoForPrint)
+                            print(
+                                "** Found SIMILAR ARTIST #",
+                                (i + 1),
+                                ":",
+                                sim.name,
+                                sim.id,
+                            )
+                            artistsIDs.append(sim.id)
+                # END if getSimilars:
+        # END if search.artists:
+
+
+# Loop through artistsIDs and add tracks
+if artistsIDs:
+    print(" - - - \n")
+    for artistID in artistsIDs:
+        print("Getting Tracks for artistID:", artistID, "\n")
+        topTracks = session.get_artist_top_tracks(artistID)
+        # collect track titles so we can avoid duplicates
+        trackTitles = []
+        for i, track in enumerate(topTracks):
+            trackID = str(track.id)
+            trackStringID = make_string_id(track.name) + make_string_id(
+                track.artist.name
+            )
+            trackInfoForPrint = (
+                trackID
+                + " - "
+                + track.name
+                + " by "
+                + track.artist.name
+                + " * "
+                + trackStringID
+            )
+            if int(qty) == len(trackTitles):
+                break
+            else:
+                if trackStringID not in trackTitles:
+                    tracksToAdd.append(trackID)
+                    trackTitles.append(trackStringID)
+                    print("  +Added!", trackInfoForPrint)
+                else:
+                    print("  -Duplicate:", trackInfoForPrint)
         print("\n")
 
 
