@@ -190,23 +190,48 @@ if artists:
         if search.artists:
             for result in search.artists:
                 artistID = result.id
-                print("** Found ARTIST:", result.name, artistID, "\n")
                 # add all artist IDs to list, then loop through to get tracks
-                artistsIDs.append(artistID)
+                if artistID not in artistsIDs:
+                    artistsIDs.append(artistID)
+                    print("** Found ARTIST:", result.name, artistID)
+                else:
+                    print(
+                        "** Found ARTIST:",
+                        result.name,
+                        artistID,
+                        "and they're already in the list",
+                    )
                 if getSimilars:
-                    similarArtists = session.get_artist_similar(artistID)
-                    for i, sim in enumerate(similarArtists):
-                        if (i + 1) > int(similars):
-                            break
-                        else:
-                            print(
-                                "** Found SIMILAR ARTIST #",
-                                (i + 1),
-                                ":",
-                                sim.name,
-                                sim.id,
-                            )
-                            artistsIDs.append(sim.id)
+                    print("Getting", similars, "similar artists...")
+                    # if there are no similar artists, the response if 404 error
+                    try:
+                        similarArtists = session.get_artist_similar(artistID)
+                        similarsFound = 0
+                        for i, sim in enumerate(similarArtists):
+                            if sim.id not in artistsIDs:
+                                if similarsFound == int(similars):
+                                    break
+                                else:
+                                    similarsFound += 1
+                                    artistsIDs.append(sim.id)
+                                    print(
+                                        i,
+                                        "** Found SIMILAR ARTIST #",
+                                        similarsFound,
+                                        ":",
+                                        sim.name,
+                                        sim.id,
+                                    )
+                            else:
+                                print(
+                                    i,
+                                    "** Found SIMILAR ARTIST:",
+                                    sim.name,
+                                    sim.id,
+                                    "but they're already in the list",
+                                )
+                    except Exception as e:
+                        print(e, "\n")
                 # END if getSimilars:
         # END if search.artists:
 
