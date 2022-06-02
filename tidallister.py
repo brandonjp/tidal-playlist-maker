@@ -28,6 +28,11 @@ parser.add_argument(
     help="# of similar artists to get extra tracks from (only works if -A is declared)",
 )
 parser.add_argument(
+    "-SD",
+    "--similarsdeep",
+    help="go deeper and get similars of similars (only works if -A -S is declared)",
+)
+parser.add_argument(
     "-P",
     "--playlist",
     help="the name of the playlist to create, optional, will be prefixed with '"
@@ -60,18 +65,25 @@ if (keywords := args.keywords) is not None:
 if (similars := args.similars) is not None:
     similars = str(args.similars).strip()
     print(" > similars:", similars)
+if (similarsdeep := args.similarsdeep) is not None:
+    similarsdeep = str(args.similarsdeep).strip()
+    print(" > similarsdeep:", similarsdeep)
 if (playlist := args.playlist) is not None:
     playlist = str(args.playlist).strip()
     print(" > playlist:", playlist)
 if (qty := args.qty) is not None:
     qty = str(args.qty).strip()
     print(" > qty:", qty)
+
+
 # Build lists to use later
 artistsList = []
 albumsList = []
 genresList = []
 keywordsList = []
 tracksToAdd = []
+artistsIDs = []
+
 
 # set up defaults
 if not int(qty):
@@ -79,11 +91,14 @@ if not int(qty):
 else:
     qty = int(qty)
 
+letsGoDeep = False
 if not similars:
     getSimilars = False
     similars = 0
 else:
     getSimilars = True
+    if similarsdeep:
+        letsGoDeep = True
     if not int(similars):
         similars = 3
     else:
@@ -103,6 +118,10 @@ if artists:
     if similars:
         playlist += " (& Similar Artists)"
         newPlaylistDescription += "--similars='" + str(similars) + "' "
+        if similarsdeep:
+            playlist += " [DEEP]"
+            newPlaylistDescription += "--similarsdeep='" + str(similarsdeep) + "' "
+
 
 if albums:
     albumsList = albums.split(",")
@@ -180,7 +199,45 @@ def get_artist_similar(artistID):
     pass
 
 
-artistsIDs = []
+def get_similars(artistID, goDeep=False):
+    print("Getting", similars, "similar artists...")
+    # if there are no similar artists, the response if 404 error
+    try:
+        similarArtists = session.get_artist_similar(artistID)
+        similarsFound = 0
+        for i, sim in enumerate(similarArtists):
+            if sim.id not in artistsIDs:
+                if similarsFound == int(similars):
+                    break
+                else:
+                    similarsFound += 1
+                    artistsIDs.append(sim.id)
+                    print(
+                        i,
+                        "** Found SIMILAR ARTIST #",
+                        similarsFound,
+                        ":",
+                        sim.name,
+                        sim.id,
+                    )
+            else:
+                print(
+                    i,
+                    "** Found SIMILAR ARTIST:",
+                    sim.name,
+                    sim.id,
+                    "but they're already in the list",
+                )
+            if goDeep:
+                print("\nGoing Deep...\n")
+                get_similars(sim.id, False)
+    except Exception as e:
+        print(e, "\n")
+
+
+# END get_similars
+
+
 # Search for the artists
 if artists:
     for a in artistsList:
@@ -202,36 +259,7 @@ if artists:
                         "and they're already in the list",
                     )
                 if getSimilars:
-                    print("Getting", similars, "similar artists...")
-                    # if there are no similar artists, the response if 404 error
-                    try:
-                        similarArtists = session.get_artist_similar(artistID)
-                        similarsFound = 0
-                        for i, sim in enumerate(similarArtists):
-                            if sim.id not in artistsIDs:
-                                if similarsFound == int(similars):
-                                    break
-                                else:
-                                    similarsFound += 1
-                                    artistsIDs.append(sim.id)
-                                    print(
-                                        i,
-                                        "** Found SIMILAR ARTIST #",
-                                        similarsFound,
-                                        ":",
-                                        sim.name,
-                                        sim.id,
-                                    )
-                            else:
-                                print(
-                                    i,
-                                    "** Found SIMILAR ARTIST:",
-                                    sim.name,
-                                    sim.id,
-                                    "but they're already in the list",
-                                )
-                    except Exception as e:
-                        print(e, "\n")
+                    get_similars(artistID, letsGoDeep)
                 # END if getSimilars:
         # END if search.artists:
 
