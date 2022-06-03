@@ -408,6 +408,7 @@ if keywords:
 
 
 if tracksToAdd:
+    print("\nMaking a new playlist with", len(tracksToAdd), "tracks...\n")
     # Create new playlist
     newPlaylistName = " ".join(playlist.split())
     newPlaylistName = newPlaylistName.strip()
