@@ -74,6 +74,8 @@ if (playlist := args.playlist) is not None:
 if (qty := args.qty) is not None:
     qty = str(args.qty).strip()
     print(" > qty:", qty)
+else:
+    qty = 10
 
 
 # Build lists to use later
