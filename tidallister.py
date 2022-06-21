@@ -25,12 +25,12 @@ parser.add_argument(
 parser.add_argument(
     "-S",
     "--similars",
-    help="# of similar artists to get extra tracks from (only works if -A is declared)",
+    help="the number of similar artists to get extra tracks from (only works if -A is declared) (default is 3)",
 )
 parser.add_argument(
     "-SD",
     "--similarsdeep",
-    help="go deeper and get similars of similars (only works if -A -S is declared)",
+    help="go deeper and get similars of similars (only works if -A -S is declared) (** BE CAREFUL: this makes your playlist grow exponentially!**)",
 )
 parser.add_argument(
     "-P",
@@ -42,7 +42,7 @@ parser.add_argument(
 parser.add_argument(
     "-Q",
     "--qty",
-    help="the number of songs from each search to add (default is 10 for each album/artist)",
+    help="the number of songs from each search to add (default is 10 for each artist/genre/keyword)",
 )
 
 # Read arguments from the command line
