@@ -42,4 +42,4 @@ These flags are available:
 
 ## notes
 * The script attempts to prevent duplicates, but this has some holes... When `tidallister` finds a track, it strips out anything in parentheses.  So "Big Hit (2005 Remaster)" and "Big Hit (Live)" would both equal "Big Hit"
-* There is also a `spotify-to-tidal.py` script, which just reads a Spotify playlist URL and outputs the command to use for `tidallister.py`
+* There is also a `spotify-to-tidal.py` script, which just reads a Spotify playlist URL and outputs the command to use for `tidallister.py` - use it like so: `python3 ./spotify-to-tidal.py "http://insert-any-spotify/playlist/url"`
