@@ -30,7 +30,7 @@ parser.add_argument(
 parser.add_argument(
     "-SD",
     "--similarsdeep",
-    help="go deeper and get similars of similars (only works if -A -S is declared) (** BE CAREFUL: this makes your playlist grow exponentially!**)",
+    help="use true/false or 1/0, this goes deeper and gets similars of similars (only works if -A & -S are declared) (** BE CAREFUL: this makes your playlist grow exponentially!**)",
 )
 parser.add_argument(
     "-P",
@@ -201,8 +201,8 @@ def get_artist_similar(artistID):
     pass
 
 
-def get_similars(artistID, goDeep=False):
-    print("Getting", similars, "similar artists...")
+def get_similars(artistID, artistName, goDeep=False):
+    print("Getting", similars, "artists similar to", artistName, "...")
     # if there are no similar artists, the response if 404 error
     try:
         similarArtists = session.get_artist_similar(artistID)
@@ -215,8 +215,8 @@ def get_similars(artistID, goDeep=False):
                     similarsFound += 1
                     artistsIDs.append(sim.id)
                     print(
-                        i,
-                        "** Found SIMILAR ARTIST #",
+                        artistName,
+                        "* SIMILAR ARTIST #",
                         similarsFound,
                         ":",
                         sim.name,
@@ -224,17 +224,18 @@ def get_similars(artistID, goDeep=False):
                     )
             else:
                 print(
-                    i,
-                    "** Found SIMILAR ARTIST:",
+                    artistName,
+                    "* SIMILAR ARTIST",
                     sim.name,
                     sim.id,
                     "but they're already in the list",
                 )
             if goDeep:
-                print("\nGoing Deep...\n")
-                get_similars(sim.id, False)
+                print("\nGoing Deep...")
+                get_similars(sim.id, artistName+" > "+sim.name, False)
     except Exception as e:
         print(e, "\n")
+    print(" ")
 
 
 # END get_similars
@@ -261,7 +262,7 @@ if artists:
                         "and they're already in the list",
                     )
                 if getSimilars:
-                    get_similars(artistID, letsGoDeep)
+                    get_similars(artistID, result.name, letsGoDeep)
                 # END if getSimilars:
         # END if search.artists:
 
