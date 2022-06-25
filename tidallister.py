@@ -157,19 +157,20 @@ if genres:
     playlist += " " + " ".join(genres.split(","))
     newPlaylistDescription += "--genres '" + genres + "' "
 
+if keywords:
+    keywordsList += keywords.split(",")
+    playlist += " " + " ".join(keywords.split(","))
+    newPlaylistDescription += "--keywords '" + keywords + "' "
+
 if tracks:
     # track search just uses keyword search
+    keywordsList += tracks.split(",")
     playlist += " " + " ".join(tracks.split(","))
-    # newPlaylistDescription += "--tracks '" + tracks + "' "
+    newPlaylistDescription += "--tracks '" + tracks + "' "
     if not keywords:
         keywords = tracks
     else:
         keywords += ", " + tracks
-
-if keywords:
-    keywordsList.append(keywords.split(","))
-    playlist += " " + " ".join(keywords.split(","))
-    newPlaylistDescription += "--keywords '" + keywords + "' "
 
 
 # custom method to remove bracket text
@@ -406,6 +407,8 @@ if genres:
         print("\n")
 
 
+print("keywords", keywords)
+print("keywordsList", keywordsList)
 # Search for the keywords (by finding the top tracks for each keyword)
 if keywords:
     for a in keywordsList:

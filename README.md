@@ -74,6 +74,22 @@ You can see the resulting playlist here: https://tidal.com/browse/playlist/00e81
 
 Allowing Dupes would mean that anything in parenthesis in the track name will be used to consider if the track is a duplicate.  So when `-AD=1` (or true or anything but false), then you'll get live and remastered and remix versions. Some duplicates are still removed. For example, if "Virtual Insanity (Remastered) by Jamiroquai" shows up in the search multiple times because it appears on multiple albums, then it will only be added once. 
 
+The real joy of this is you can quickly grab all (or top) versions of multiple songs with something like: 
+
+`python3 ./tidallister.py -T="new radicals get what you give, santana game of love" -Q=500 -AD=1`
+
+👆 that line would generate a playlist with this 👇: 
+ * up to 500 songs matching "New Radicals You Get What You Give"
+ * up to 500 songs matching "Santana Game of Love"
+ * (in this case there are only a few matches because the search was fairly specific)
+
+You can see the resulting playlist here: https://tidal.com/browse/playlist/ec0b94af-f43e-4147-954f-b0d36783379a
+
+By making the search less specific & removing the artist name, you'll get a much bigger playlist (some songs accurately matching & some less so)...
+
+`python3 ./tidallister.py -T="you get what you give, game of love" -Q=500 -AD=1`
+
+...over 300 tracks with titles that are moderately close matching. You can see the resulting playlist here: https://tidal.com/browse/playlist/38eed1f0-996b-4c7c-b660-75d510f46b7d
 
 
 ## options
