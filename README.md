@@ -39,6 +39,43 @@ which will grab Jewel, then 20 similar artists and then for each of those, 20 si
 You can see the result here: https://tidal.com/browse/playlist/1b408b0b-c6b8-4699-a7ca-6452ed682c33
 (which I thought would only 420 tracks but it's 436 🤷‍♀️)
 
+## example 3: tracks & duplicates
+
+Let's say you want every version of one particular song...
+
+`python3 ./tidallister.py -T="Virtual Insanity" -Q=100`
+
+👆 that line would generate a playlist with this 👇: 
+ * tracks matching "Virtual Insanity" from different artists
+ * with a maximum of 100 total tracks
+
+You can see the resulting playlist here: https://tidal.com/browse/playlist/f97cb865-e249-4ff0-9136-29b02975aba5
+
+A `-T` or `--tracks` search is actually just the same as a `-K` or `--keywords` search. The `--tracks` option is just a shortcut because I kept forgetting `keywords` would find tracks.
+
+Since the default check for duplicates removes any text in brackets/parens, that means all of the following would be considered the same song. Only the first match found would be added and the rest would be discarded as duplicates:
+ * Virtual Insanity by Jamiroquai 
+ * Virtual Insanity (Remastered) by Jamiroquai 
+ * Virtual Insanity (Bklava Remix) by Jamiroquai
+ * Virtual Insanity (Salaam Remi Remix) by Jamiroquai
+ * Virtual Insanity (Bklava Remix - Radio Edit) by Jamiroquai
+ * Virtual Insanity (Live at the Verona Amphitheatre, Italy, 2002) by Jamiroquai
+
+So what if you wanted to collect ALL of those versions, even if they might be duplicates? Use `-AD=1` or `--allowdupes=1`
+
+`python3 ./tidallister.py -T="Virtual Insanity" -Q=100 -AD=true`
+
+👆 that line would generate a playlist with this 👇: 
+ * tracks matching "Virtual Insanity" from different artists
+ * with a maximum of 100 total tracks
+ * including duplicates (but not exact name dupes)
+
+You can see the resulting playlist here: https://tidal.com/browse/playlist/00e81116-9be3-4712-a223-651e3d32c54e
+
+Allowing Dupes would mean that anything in parenthesis in the track name will be used to consider if the track is a duplicate.  So when `-AD=1` (or true or anything but false), then you'll get live and remastered and remix versions. Some duplicates are still removed. For example, if "Virtual Insanity (Remastered) by Jamiroquai" shows up in the search multiple times because it appears on multiple albums, then it will only be added once. 
+
+
+
 ## options
 
 You can view options by running: `python3 tidallister.py --help`
@@ -46,9 +83,12 @@ You can view options by running: `python3 tidallister.py --help`
 These flags are available:
 
 ```
+optional arguments:
   -h, --help            show this help message and exit
   -A ARTISTS, --artists ARTISTS
                         comma separated list of arists to search for
+  -T TRACKS, --tracks TRACKS
+                        same as -K, comma separated list of tracks to search for
   -G GENRES, --genres GENRES
                         comma separated list of genres to search for
   -L ALBUMS, --albums ALBUMS
@@ -56,11 +96,12 @@ These flags are available:
   -K KEYWORDS, --keywords KEYWORDS
                         comma separated list, top tracks of each search term
   -S SIMILARS, --similars SIMILARS
-                        the number of similar artists to get extra tracks from (only works if -A is declared) (default is
-                        3)
+                        the number of similar artists to get extra tracks from (only works if -A is declared) (default is 3)
   -SD SIMILARSDEEP, --similarsdeep SIMILARSDEEP
-                        use true/false or 1/0, this goes deeper and gets similars of similars (only works if -A & -S are
-                        declared) (** BE CAREFUL: this makes your playlist grow exponentially!**)
+                        use true/false or 1/0, this goes deeper and gets similars of similars (only works if -A & -S are declared) (** BE CAREFUL: this
+                        makes your playlist grow exponentially!**)
+  -AD ALLOWDUPES, --allowdupes ALLOWDUPES
+                        use true/false or 1/0, this allows duplicates if true, default is to skip duplicates
   -P PLAYLIST, --playlist PLAYLIST
                         the name of the playlist to create, optional, will be prefixed with 'TidalLister: '
   -Q QTY, --qty QTY     the number of songs from each search to add (default is 10 for each artist/genre/keyword)
