@@ -91,6 +91,26 @@ By making the search less specific & removing the artist name, you'll get a much
 
 ...over 300 tracks with titles that are moderately close matching. You can see the resulting playlist here: https://tidal.com/browse/playlist/38eed1f0-996b-4c7c-b660-75d510f46b7d
 
+## example 4: Spotify playlists
+
+Let's say there's a Spotify playlist you want to listen to, but you'd rather use Tidal...
+
+`python3 ./tidallister.py -SP="https://open.spotify.com/playlist/3cS0NFVjjZlcR7mstctEYT"`
+
+👆 that line would generate a playlist with this 👇: 
+ * best guess track matches for each song on the Spotify playlist
+
+You can see the resulting playlist here: https://tidal.com/browse/playlist/74e2ae5a-e88a-4ac3-8368-ad0235e4bf17
+
+NOTES for using the Spotify flag: 
+* It will force `QTY=1` (quantity) so that it only adds one match for each Spotify track
+* It will force `AD=1` (allowdupes) so that it (hopefully) has a better quality match (in cases where the Spotify playlist has specific versions or remixes, etc)
+* You can supply a full Spotify playlist URL: `https://open.spotify.com/playlist/3cS0NFVjjZlcR7mstctEYT`
+* You can supply just the playlist ID: `3cS0NFVjjZlcR7mstctEYT`
+* You can supply a Spotify album or artist URL: `https://open.spotify.com/album/6MJb2k5X1k25ebj7ZyixCb`
+* You can supply just the back half of a full url: `album/6MJb2k5X1k25ebj7ZyixCb`
+* If you supply just an ID, it will be assumed a playlist: `3cS0NFVjjZlcR7mstctEYT` will convert to `playlist/3cS0NFVjjZlcR7mstctEYT` which will convert to the full `https://open.spotify.com/playlist/3cS0NFVjjZlcR7mstctEYT` URL
+* Also, I think you can supply multiple, comma-separated Spotify keys, but haven't tested this very well yet
 
 ## options
 
@@ -99,7 +119,6 @@ You can view options by running: `python3 tidallister.py --help`
 These flags are available:
 
 ```
-optional arguments:
   -h, --help            show this help message and exit
   -A ARTISTS, --artists ARTISTS
                         comma separated list of arists to search for
@@ -112,18 +131,26 @@ optional arguments:
   -K KEYWORDS, --keywords KEYWORDS
                         comma separated list, top tracks of each search term
   -S SIMILARS, --similars SIMILARS
-                        the number of similar artists to get extra tracks from (only works if -A is declared) (default is 3)
+                        the number of similar artists to get extra tracks from (only works if
+                        -A is declared) (default is 3)
   -SD SIMILARSDEEP, --similarsdeep SIMILARSDEEP
-                        use true/false or 1/0, this goes deeper and gets similars of similars (only works if -A & -S are declared) (** BE CAREFUL: this
-                        makes your playlist grow exponentially!**)
+                        use true/false or 1/0, this goes deeper and gets similars of similars
+                        (only works if -A & -S are declared) (** BE CAREFUL: this makes your
+                        playlist grow exponentially!**)
   -AD ALLOWDUPES, --allowdupes ALLOWDUPES
-                        use true/false or 1/0, this allows duplicates if true, default is to skip duplicates
+                        use true/false or 1/0, this allows duplicates if true, default is to
+                        skip duplicates
   -P PLAYLIST, --playlist PLAYLIST
-                        the name of the playlist to create, optional, will be prefixed with 'TidalLister: '
-  -Q QTY, --qty QTY     the number of songs from each search to add (default is 10 for each artist/genre/keyword)
+                        the name of the playlist to create, optional, will be prefixed with
+                        'TidalLister: '
+  -Q QTY, --qty QTY     the number of songs from each search to add (default is 10 for each
+                        artist/genre/keyword)
+  -SP SPOTIFY, --spotify SPOTIFY
+                        take a Spotify url (for artist,album,playist) and attempt to recreate
+                        it (approximately) in Tidal (forces Q=1 & AD=1)
 ```
 
 ## notes
-* The script attempts to prevent duplicates, but this has some holes... When `tidallister` finds a track, it strips out anything in parentheses.  So "Big Hit (2005 Remaster)" and "Big Hit (Live)" would both equal "Big Hit"
-* **CONVERT SPOTIFY PLAYLISTS TO TIDAL**: There is also a `spotify-to-tidal.py` script, which just reads a Spotify playlist URL and outputs the command to use for `tidallister.py` - use it like so: `python3 ./spotify-to-tidal.py "http://insert-any-spotify/playlist/url"`
+* **MULTIPLE VERSIONS OF THE SAME SONG BY THE SAME ARTIST**:  By default, the script attempts to prevent duplicates, but this has some holes... When `tidallister` finds a track, it strips out anything in parentheses.  So "Big Hit (2005 Remaster)" and "Big Hit (Live)" would both equal "Big Hit" - to avoid this, try `--allowdupes=1`
+* **CONVERT SPOTIFY PLAYLISTS TO TIDAL**: There is an old `spotify-to-tidal.py` script, which just reads a Spotify playlist URL and outputs the command to use for `tidallister.py` - use it like so: `python3 ./spotify-to-tidal.py "http://insert-any-spotify/playlist/url"` but that script is now updated and rolled into the main `tidallister.py` using the `--spotify` flag to supply one or more Spotify urls or playlist IDs
 * **MAC APP / APPLESCRIPT GUI**:There is also a `TidalLister.app` folder which is an applescript app that likely won't work on your machine, but i can help you try

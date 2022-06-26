@@ -5,7 +5,6 @@ import sys
 import re
 import requests
 from bs4 import BeautifulSoup
-import subprocess
 
 url = sys.argv[1]
 # url = "https://open.spotify.com/playlist/6gNwLjuyLIK6rl4LV0jkch"
