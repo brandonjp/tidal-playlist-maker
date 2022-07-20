@@ -193,18 +193,24 @@ spotifyFront = "https://open.spotify.com/"
 spotifyCases = ("artist/", "album/", "playlist/")
 spotPlaylistName = ""
 spotTracksString = ""
+# print(spotify)
 if spotify:
     spotifyList += spotify.split(",")
     for spot in spotifyList:
-        if spotify.startswith(spotifyFront + "playlist"):
-            # if string begins with 'https' then treat as a url and move on
-            spotifyURL = spotify
-        elif spotify.startswith(spotifyCases):
-            # else if it begins with ['artist','album','playlist'] then use that
-            spotifyURL = spotifyFront + spotify
+        # first, check if it's a partial url
+        if spot.startswith(spotifyCases):
+            print(" > spotify:", "Building direct url -", spot)
+            spot = spotifyFront + spot
+
+        # check if this is a full spotify url
+        if spot.startswith(spotifyFront):
+            print(" > spotify:", "Using direct url -", spot)
+            spotifyURL = spot
         else:
+            print(" > spotify:", "assuming this is a playlist ID -", spot)
             # else, assume it's a playlist id and add the https front
-            spotifyURL = spotifyFront + "playlist/" + spotify
+            spotifyURL = spotifyFront + "playlist/" + spot
+
         # now setup actual search with spotify
         if spotifyURL:
             spotPage = requests.get(spotifyURL)
@@ -217,7 +223,7 @@ if spotify:
             ) + " [Spotify]. "
             spotTracks = spotSoup.select('[data-testid="track-row"]')
             spotTracksDict = []
-            # print(tracks)
+            # print(spotifyURL)
             print("   *** Getting Spotify playlist:", spotPlaylistName)
             print("       from:", spotifyURL)
             for spotTrack in spotTracks:
@@ -242,11 +248,14 @@ if spotify:
                     print("   *** Spotify links:", links)
 
             # finally add it to the keyword search
-            print("       Total Tracks:", len(spotTracks))
-            keywordsList += spotTracksDict
-            spotTracksString += ", ".join(spotTracksDict)
-            playlist += " " + spotPlaylistName
-            newPlaylistDescription += "--spotify '" + spotify + "' "
+            totalTrackCount = len(spotTracks)
+            print("       Total Tracks:", totalTrackCount)
+            if totalTrackCount > 0:
+                keywordsList += spotTracksDict
+                spotTracksString += ", ".join(spotTracksDict)
+                playlist += " " + spotPlaylistName
+                newPlaylistDescription += "--spotify '" + spotify + "' "
+
         # for spotify, force the QTY & dupes
         qty = 1
         allowdupes = 1
