@@ -11,6 +11,8 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
+# pip3 install argparse tidalapi requests bs4 plyer
+
 
 playlistPrefix = "TidalLister: "
 useDefaultPlaylistName = True
@@ -297,12 +299,27 @@ def make_string_id(test_str):
     return ret
 
 
+## Now connect to Tidal
+
 print("- - -")
-# Connect to Tidal
-session = tidalapi.Session()
-# Will run until you visit the printed url and link your account
+
+# config = tidalapi.Config(quality=tidalapi.Quality.lossless, video_quality=tidalapi.VideoQuality.low)
+config = tidalapi.Config()
+session = tidalapi.Session(config)
+
+from plyer import notification
+
+login, future = session.login_oauth()
+
+# The function is print by default, but you can use anything, here we do it to avoid the print being swallowed
 session.login_oauth_simple()
-userID = session.user.id
+print(session.check_login())
+
+# notification.notify("Open the URL to log in", login.verification_uri_complete)
+
+# future.result()
+# print(session.check_login())
+
 print("")
 
 
@@ -332,7 +349,7 @@ def get_similars(artistID, artistName, goDeep=False):
     print("Getting", similars, "artists similar to", artistName, "...")
     # if there are no similar artists, the response if 404 error
     try:
-        similarArtists = session.get_artist_similar(artistID)
+        similarArtists = session.artist(artistID)
         similarsFound = 0
         for i, sim in enumerate(similarArtists):
             if sim.id not in artistsIDs:
@@ -373,9 +390,10 @@ if artists:
     for a in artistsList:
         print("- - - \n")
         print("* Searching for ARTIST:", a)
-        search = session.search("artist", a, limit=1)
-        if search.artists:
-            for result in search.artists:
+        search = session.search(a, models=[tidalapi.artist.Artist], limit=1)
+        print(search)
+        if search["artists"]:
+            for result in search["artists"]:
                 artistID = result.id
                 # add all artist IDs to list, then loop through to get tracks
                 if artistID not in artistsIDs:
@@ -399,7 +417,7 @@ if artistsIDs:
     print(" - - - \n")
     for artistID in artistsIDs:
         print("Getting Tracks for artistID:", artistID, "\n")
-        topTracks = session.get_artist_top_tracks(artistID)
+        topTracks = session.artist(artistID).get_top_tracks()
         # collect track titles so we can avoid duplicates
         trackTitles = []
         for i, track in enumerate(topTracks):
@@ -433,12 +451,12 @@ if albums:
     for a in albumsList:
         print(" - - - \n")
         print("* Searching for ALBUMS: ", a)
-        search = session.search("album", a, limit=1)
-        if search.albums:
-            for result in search.albums:
+        search = session.search(a, models=[tidalapi.album.Album], limit=1)
+        if search["albums"]:
+            for result in search["albums"]:
                 albumID = result.id
                 print("** Found ALBUM: ", result.name, albumID, "\n")
-                albumTracks = session.get_album_tracks(albumID)
+                albumTracks = session.album(albumID).tracks()
                 trackTitles = []
                 for i, track in enumerate(albumTracks):
                     trackID = str(track.id)
@@ -468,12 +486,12 @@ if genres:
     for a in genresList:
         print(" - - - \n")
         print("* Searching for GENRES: ", a)
-        search = session.search("playlist", a, limit=1)
-        if search.playlists:
-            for result in search.playlists:
+        search = session.search(a, models=[tidalapi.playlist.Playlist], limit=1)
+        if search["playlists"]:
+            for result in search["playlists"]:
                 playlistID = result.id
                 print("** Found GENRE Playlist: ", result.name, playlistID, "\n")
-                genreTracks = session.get_playlist_tracks(playlistID)
+                genreTracks = session.playlist(playlistID).tracks()
                 trackTitles = []
                 for i, track in enumerate(genreTracks):
                     trackID = str(track.id)
@@ -509,11 +527,11 @@ if keywords:
         print(" - - - \n")
         print("* Searching for KEYWORDS: ", a)
         # we'll pad the qty a bit in case of duplicates so that we get more than enough results and can then limit it to the qty
-        search = session.search("track", a, limit=(int(qty) + 10))
-        if search.tracks:
+        search = session.search(a, models=[tidalapi.track.Track], limit=(int(qty) + 10))
+        if search["tracks"]:
             print("** Found KEYWORD results: ", a, "\n")
             trackTitles = []
-            for i, track in enumerate(search.tracks):
+            for i, track in enumerate(search["tracks"]):
                 trackID = str(track.id)
                 trackStringID = make_string_id(track.name) + make_string_id(
                     track.artist.name
@@ -546,26 +564,14 @@ if tracksToAdd:
     newPlaylistName = newPlaylistName.strip().replace("  ", " ")
     newPlaylistDescription += "--qty '" + str(qty) + "' "
     newPlaylistDescription = newPlaylistDescription.strip().replace("  ", " ")
-    newPlaylist = session.request(
-        "POST",
-        "users/%s/playlists" % userID,
-        data={"title": newPlaylistName, "description": newPlaylistDescription},
-    )
-    newPlaylistID = newPlaylist.json()["uuid"]
-    # print(newPlaylistID)
-
-    # Add Tracks to playlist
-    # to_index = 0
-    etag = session.request("GET", "playlists/%s" % newPlaylistID).headers["ETag"]
-    headers = {"if-none-match": etag}
-    data = {"trackIds": ",".join(tracksToAdd)}
-    result = session.request(
-        "POST", "playlists/%s/tracks" % newPlaylistID, data=data, headers=headers
-    )
-    newPlaylistURL = "https://tidal.com/browse/playlist/" + newPlaylistID
+    newPlaylist = session.user.create_playlist(newPlaylistName, newPlaylistDescription)
+    print("\nPlaylist created. Adding tracks to:", newPlaylist.name)
+    newPlaylist.add(tracksToAdd)
+    newPlaylistURL = "https://tidal.com/browse/playlist/" + newPlaylist.id
     print("Done! Your New Playlist is available at:")
     print(newPlaylistURL)
     print(newPlaylistName)
     print(newPlaylistDescription)
+    sys.exit("Done!")
 else:
     print("Could not find any tracks to add. Exiting now.")
